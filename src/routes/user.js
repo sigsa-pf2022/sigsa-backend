@@ -5,13 +5,15 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const JWT_SECRET =
   "kasjkvkjcbkhbasl234129H8CINA@!$G0F901@#R4-BFF|-Fsda830!@#AS9D1";
-router.get("/", async (req, res) => {
-  res.send("You have hit GET /posts endpoint");
-});
+
+router.get('/', async(req,res)=>{
+  const users = await User.find();
+  console.log(users);
+  return res.json({ status: "success", response: users });
+})
 
 router.post("/register", async (req, res) => {
   var { email, password } = req.body;
-
   if (!email || typeof email !== "string") {
     return res.json({ status: "error", error: "Invalid email" });
   }
@@ -55,14 +57,15 @@ router.post("/login", async (req, res) => {
     });
   }
   const user = await User.findOne({ email }).lean();
-  console.log(user);
   if (!user) {
     return res.json({ status: "error", error: "Invalid email." });
   }
   if (await bcrypt.compare(password, user.password)) {
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET);
-    return res.json({status: 'OK', data: token});
-  }else{
+    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET.at, {
+      expiresIn: 60 * 60 * 24 * 7,
+    });
+    return res.json({ status: "success", data: token });
+  } else {
     return res.json({ status: "error", error: "Invalid password." });
   }
 });

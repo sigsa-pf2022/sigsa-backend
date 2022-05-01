@@ -7,7 +7,7 @@
     "tsc": "tsc",
     "dev": "nodemon src/index.js",
     "build": "node src/index.js",
-    "test": "jest",
+    "test": "jest --verbose --silent --detectOpenHandles",
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
     "lint:check": "eslint .",
