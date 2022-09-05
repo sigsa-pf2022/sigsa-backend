@@ -4,16 +4,27 @@ import RawFamilyGroupData from '../models/RawFamilyGroupData';
 
 const getFamilyGroups = async (req, res) => {
   const familyGroupsRef = db.collection('familyGroups');
-  const queryRef = await familyGroupsRef
+  const ownedFamilyGroupsRef = await familyGroupsRef
     .where('createdBy', '==', req.query.id)
     .get();
-  const docs = [];
-  queryRef.docs.forEach(async (doc) => {
+  const memberFamilyGroupRef = await familyGroupsRef
+    .where('members', 'array-contains', req.query.id)
+    .get();
+  if (ownedFamilyGroupsRef.empty && memberFamilyGroupRef.empty) {
+    res.status(200).send();
+  }
+  const familyGroupsRefs = [
+    ...ownedFamilyGroupsRef.docs,
+    ...memberFamilyGroupRef.docs,
+  ];
+  const result: FamilyGroup[] = [];
+  for (const doc of familyGroupsRefs) {
     const data = new RawFamilyGroupData(doc.data());
     const fg = await new FamilyGroup().create(data);
-    res.status(200);
-    res.send(fg);
-  });
+    result.push(fg);
+  }
+  res.status(200);
+  res.send(result);
 };
 
 export { getFamilyGroups };
